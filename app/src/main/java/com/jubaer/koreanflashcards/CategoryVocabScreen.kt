@@ -11,9 +11,14 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
+/**
+ * onPracticeGroup: নির্বাচিত word গুলো দিয়ে Flashcard tab এ গিয়ে সরাসরি
+ * practice শুরু করার callback (MainActivity/AppRoot থেকে wiring করা)।
+ */
 @Composable
-fun CategoryVocabScreen(viewModel: CategoryVocabViewModel) {
+fun CategoryVocabScreen(viewModel: CategoryVocabViewModel, onPracticeGroup: (List<FlashcardItem>) -> Unit) {
     val state by viewModel.uiState.collectAsState()
+    val selectedWords = remember { mutableStateListOf<String>() }
 
     Column(
         modifier = Modifier
@@ -64,12 +69,34 @@ fun CategoryVocabScreen(viewModel: CategoryVocabViewModel) {
         )
         Spacer(Modifier.height(8.dp))
 
-        LazyColumn(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+        LazyColumn(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(10.dp)) {
             items(state.words) { w ->
+                val isSelected = selectedWords.contains(w.korean)
                 Card(modifier = Modifier.fillMaxWidth()) {
                     Column(modifier = Modifier.padding(16.dp)) {
-                        Text(w.korean, fontSize = 20.sp, fontWeight = FontWeight.Bold)
-                        Text("অর্থ: ${w.bangla}", fontSize = 14.sp)
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(w.korean, fontSize = 20.sp, fontWeight = FontWeight.Bold)
+                                Text("অর্থ: ${w.bangla}", fontSize = 14.sp)
+                            }
+                            Button(
+                                onClick = {
+                                    if (isSelected) selectedWords.remove(w.korean) else selectedWords.add(w.korean)
+                                },
+                                colors = if (isSelected) {
+                                    ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.secondary)
+                                } else {
+                                    ButtonDefaults.buttonColors()
+                                }
+                            ) {
+                                Text(if (isSelected) "✅ যোগ হয়েছে" else "➕ Practice-এ যোগ করো")
+                            }
+                        }
+
                         if (!w.synonyms.isNullOrBlank()) {
                             Spacer(Modifier.height(4.dp))
                             Text(
@@ -86,6 +113,28 @@ fun CategoryVocabScreen(viewModel: CategoryVocabViewModel) {
                             )
                         }
                     }
+                }
+            }
+        }
+
+        if (selectedWords.isNotEmpty()) {
+            Spacer(Modifier.height(8.dp))
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                OutlinedButton(onClick = { selectedWords.clear() }) {
+                    Text("❌ সব বাদ দাও")
+                }
+                Button(
+                    onClick = {
+                        viewModel.buildPracticeItems(selectedWords.toList()) { items ->
+                            onPracticeGroup(items)
+                        }
+                    },
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Text("▶️ Practice করো (${selectedWords.size} টা word)")
                 }
             }
         }

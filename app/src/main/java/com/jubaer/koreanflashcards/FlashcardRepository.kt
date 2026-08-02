@@ -290,4 +290,22 @@ class FlashcardRepository(private val api: SupabaseApi, private val db: AppDatab
                 }
             }
     }
+
+    /**
+     * নির্দিষ্ট কিছু korean_word (যেমন Category Vocabulary screen থেকে ব্যবহারকারী
+     * বেছে নেওয়া word) দিয়ে সরাসরি FlashcardItem list বানায়, practice শুরু করার জন্য।
+     */
+    suspend fun buildFlashcardItemsForWords(koreanWords: List<String>): List<FlashcardItem> {
+        val vocabMap = db.vocabDao().getAll().associateBy { it.korean_word }
+        val progressMap = db.progressDao().getAll().associateBy { it.korean_word }
+        return koreanWords.mapNotNull { k ->
+            val v = vocabMap[k] ?: return@mapNotNull null
+            val p = progressMap[k]
+            FlashcardItem(
+                v.korean_word, v.bangla_meaning, v.chapter_number,
+                p?.box_level ?: 1, p?.times_reviewed ?: 0, p?.times_correct ?: 0
+            )
+        }
+    }
 }
+

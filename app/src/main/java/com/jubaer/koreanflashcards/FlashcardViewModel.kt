@@ -96,6 +96,13 @@ class FlashcardViewModel(private val repo: FlashcardRepository) : ViewModel() {
         }
     }
 
+    /** বাম দিকে swipe করে আগের card এ ফিরে যাওয়া (প্রথম card এ থাকলে কিছু হবে না)। */
+    fun previousCard() {
+        val current = _uiState.value as? UiState.Practicing ?: return
+        if (current.index <= 0) return
+        _uiState.value = current.copy(index = current.index - 1, showAnswer = false)
+    }
+
     fun answer(rating: Rating) {
         val current = _uiState.value as? UiState.Practicing ?: return
         val card = current.queue[current.index]

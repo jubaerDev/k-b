@@ -174,7 +174,10 @@ fun AppRoot(
                     2 -> UploadChapterScreen(uploadViewModel)
                     3 -> QuestionBankScreen(questionBankViewModel)
                     4 -> BookViewScreen(bookViewViewModel)
-                    5 -> CategoryVocabScreen(categoryVocabViewModel)
+                    5 -> CategoryVocabScreen(categoryVocabViewModel, onPracticeGroup = { items ->
+                        flashcardViewModel.startSessionWithItems(items)
+                        selectedTab = 0
+                    })
                 }
             }
         }
@@ -298,8 +301,13 @@ fun PracticeScreen(state: UiState.Practicing, viewModel: FlashcardViewModel) {
                         onHorizontalDrag = { change, dragAmount ->
                             change.consume()
                             dragTotal += dragAmount
-                            if (kotlin.math.abs(dragTotal) > 180f) {
+                            if (dragTotal > 180f) {
+                                // ডান দিকে swipe → পরের card
                                 viewModel.skipCard()
+                                dragTotal = 0f
+                            } else if (dragTotal < -180f) {
+                                // বাম দিকে swipe → আগের card
+                                viewModel.previousCard()
                                 dragTotal = 0f
                             }
                         }
@@ -316,7 +324,7 @@ fun PracticeScreen(state: UiState.Practicing, viewModel: FlashcardViewModel) {
                 }
 
                 Text(
-                    "👉 Swipe করে skip",
+                    "👈 আগের | পরের 👉",
                     fontSize = 11.sp,
                     color = MaterialTheme.colorScheme.outline,
                     modifier = Modifier.align(Alignment.TopEnd).padding(12.dp)

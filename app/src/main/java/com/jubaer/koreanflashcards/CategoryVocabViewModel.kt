@@ -49,6 +49,14 @@ class CategoryVocabViewModel(private val repo: FlashcardRepository) : ViewModel(
             }
         }
     }
+
+    /** নির্বাচিত word গুলো (korean_word list) দিয়ে FlashcardItem বানিয়ে callback এ পাঠায়। */
+    fun buildPracticeItems(koreanWords: List<String>, onReady: (List<FlashcardItem>) -> Unit) {
+        viewModelScope.launch {
+            val items = repo.buildFlashcardItemsForWords(koreanWords)
+            onReady(items)
+        }
+    }
 }
 
 class CategoryVocabViewModelFactory(private val repo: FlashcardRepository) : ViewModelProvider.Factory {
