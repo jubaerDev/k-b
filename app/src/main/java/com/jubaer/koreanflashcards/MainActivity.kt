@@ -30,6 +30,7 @@ class MainActivity : ComponentActivity() {
     private val questionBankViewModel: QuestionBankViewModel by viewModels { QuestionBankViewModelFactory(repo) }
     private val bookViewViewModel: BookViewViewModel by viewModels { BookViewViewModelFactory(repo) }
     private val categoryVocabViewModel: CategoryVocabViewModel by viewModels { CategoryVocabViewModelFactory(repo) }
+    private val customSetViewModel: CustomSetViewModel by viewModels { CustomSetViewModelFactory(repo) }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -46,7 +47,8 @@ class MainActivity : ComponentActivity() {
                         uploadViewModel,
                         questionBankViewModel,
                         bookViewViewModel,
-                        categoryVocabViewModel
+                        categoryVocabViewModel,
+                        customSetViewModel
                     )
                 }
             }
@@ -63,7 +65,8 @@ fun AppRoot(
     uploadViewModel: UploadChapterViewModel,
     questionBankViewModel: QuestionBankViewModel,
     bookViewViewModel: BookViewViewModel,
-    categoryVocabViewModel: CategoryVocabViewModel
+    categoryVocabViewModel: CategoryVocabViewModel,
+    customSetViewModel: CustomSetViewModel
 ) {
     var selectedTab by remember { mutableStateOf(0) }
     var syncing by remember { mutableStateOf(false) }
@@ -94,90 +97,89 @@ fun AppRoot(
 
     LaunchedEffect(Unit) { runSync() }
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text("Korean Flashcards") },
-                actions = {
-                    if (syncing) {
-                        CircularProgressIndicator(modifier = Modifier.size(20.dp).padding(end = 8.dp))
-                    } else {
-                        IconButton(onClick = { runSync() }) { Text("🔄") }
-                    }
+    val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
+
+    val menuItems = listOf(
+        Triple("🎴", "Flashcards", 0),
+        Triple("📖", "Words", 1),
+        Triple("📤", "Upload", 2),
+        Triple("📝", "Quiz", 3),
+        Triple("📚", "Book", 4),
+        Triple("🗂️", "Category", 5),
+        Triple("🗃️", "My Sets", 6)
+    )
+
+    ModalNavigationDrawer(
+        drawerState = drawerState,
+        drawerContent = {
+            ModalDrawerSheet {
+                Column(modifier = Modifier.padding(16.dp)) {
+                    Text("Korean Flashcards", fontSize = 20.sp, fontWeight = FontWeight.Bold)
+                    Text("মেনু", fontSize = 12.sp, color = MaterialTheme.colorScheme.outline)
                 }
-            )
-        },
-        bottomBar = {
-            NavigationBar {
-                NavigationBarItem(
-                    selected = selectedTab == 0,
-                    onClick = { selectedTab = 0 },
-                    icon = { Text("🎴") },
-                    label = { Text("Cards") },
-                    alwaysShowLabel = false
-                )
-                NavigationBarItem(
-                    selected = selectedTab == 1,
-                    onClick = { selectedTab = 1 },
-                    icon = { Text("📖") },
-                    label = { Text("Words") },
-                    alwaysShowLabel = false
-                )
-                NavigationBarItem(
-                    selected = selectedTab == 2,
-                    onClick = { selectedTab = 2 },
-                    icon = { Text("📤") },
-                    label = { Text("Upload") },
-                    alwaysShowLabel = false
-                )
-                NavigationBarItem(
-                    selected = selectedTab == 3,
-                    onClick = { selectedTab = 3 },
-                    icon = { Text("📝") },
-                    label = { Text("Quiz") },
-                    alwaysShowLabel = false
-                )
-                NavigationBarItem(
-                    selected = selectedTab == 4,
-                    onClick = { selectedTab = 4 },
-                    icon = { Text("📚") },
-                    label = { Text("Book") },
-                    alwaysShowLabel = false
-                )
-                NavigationBarItem(
-                    selected = selectedTab == 5,
-                    onClick = { selectedTab = 5 },
-                    icon = { Text("🗂️") },
-                    label = { Text("Category") },
-                    alwaysShowLabel = false
-                )
+                HorizontalDivider()
+                menuItems.forEach { (icon, label, index) ->
+                    NavigationDrawerItem(
+                        label = { Text("$icon  $label") },
+                        selected = selectedTab == index,
+                        onClick = {
+                            selectedTab = index
+                            scope.launch { drawerState.close() }
+                        },
+                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 2.dp)
+                    )
+                }
             }
         }
-    ) { padding ->
-        Column(modifier = Modifier.padding(padding)) {
-            if (syncMessage != null) {
-                Text(
-                    syncMessage!!,
-                    fontSize = 12.sp,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp, vertical = 4.dp)
+    ) {
+        Scaffold(
+            topBar = {
+                TopAppBar(
+                    title = { Text("Korean Flashcards") },
+                    navigationIcon = {
+                        IconButton(onClick = { scope.launch { drawerState.open() } }) {
+                            Text("☰", fontSize = 20.sp)
+                        }
+                    },
+                    actions = {
+                        if (syncing) {
+                            CircularProgressIndicator(modifier = Modifier.size(20.dp).padding(end = 8.dp))
+                        } else {
+                            IconButton(onClick = { runSync() }) { Text("🔄") }
+                        }
+                    }
                 )
             }
-            Box(modifier = Modifier.weight(1f)) {
-                when (selectedTab) {
-                    0 -> FlashcardApp(flashcardViewModel)
-                    1 -> BrowseVocabularyScreen(browseViewModel, onPracticeGroup = { items ->
-                        flashcardViewModel.startSessionWithItems(items)
-                        selectedTab = 0
-                    })
-                    2 -> UploadChapterScreen(uploadViewModel)
-                    3 -> QuestionBankScreen(questionBankViewModel)
-                    4 -> BookViewScreen(bookViewViewModel)
-                    5 -> CategoryVocabScreen(categoryVocabViewModel, onPracticeGroup = { items ->
-                        flashcardViewModel.startSessionWithItems(items)
-                        selectedTab = 0
-                    })
+        ) { padding ->
+            Column(modifier = Modifier.padding(padding)) {
+                if (syncMessage != null) {
+                    Text(
+                        syncMessage!!,
+                        fontSize = 12.sp,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp, vertical = 4.dp)
+                    )
+                }
+                Box(modifier = Modifier.weight(1f)) {
+                    when (selectedTab) {
+                        0 -> FlashcardApp(flashcardViewModel)
+                        1 -> BrowseVocabularyScreen(browseViewModel, onPracticeGroup = { items ->
+                            flashcardViewModel.startSessionWithItems(items)
+                            selectedTab = 0
+                        })
+                        2 -> UploadChapterScreen(uploadViewModel)
+                        3 -> QuestionBankScreen(questionBankViewModel)
+                        4 -> BookViewScreen(bookViewViewModel)
+                        5 -> CategoryVocabScreen(categoryVocabViewModel, onPracticeGroup = { items ->
+                            flashcardViewModel.startSessionWithItems(items)
+                            selectedTab = 0
+                        })
+                        6 -> CustomSetScreen(customSetViewModel, onPracticeGroup = { items ->
+                            flashcardViewModel.startSessionWithItems(items)
+                            selectedTab = 0
+                        })
+                    }
                 }
             }
         }

@@ -307,5 +307,36 @@ class FlashcardRepository(private val api: SupabaseApi, private val db: AppDatab
             )
         }
     }
+
+    // ---------- Custom Sets ----------
+
+    suspend fun getCustomSets(): List<CustomSet> = api.getCustomSets()
+
+    suspend fun createCustomSet(name: String): CustomSet {
+        val result = api.insertCustomSet(CustomSetInsert(name))
+        return result.first()
+    }
+
+    suspend fun deleteCustomSet(setId: Long) {
+        api.deleteCustomSet(idFilter = "eq.$setId")
+    }
+
+    suspend fun getCustomSetWordItems(setId: Long): List<FlashcardItem> {
+        val rows = api.getCustomSetWords(setIdFilter = "eq.$setId")
+        return buildFlashcardItemsForWords(rows.map { it.korean_word })
+    }
+
+    suspend fun addWordsToCustomSet(setId: Long, koreanWords: List<String>) {
+        if (koreanWords.isEmpty()) return
+        val existing = api.getCustomSetWords(setIdFilter = "eq.$setId").map { it.korean_word }.toSet()
+        val newOnes = koreanWords.filter { it !in existing }
+        if (newOnes.isEmpty()) return
+        val payload = newOnes.map { CustomSetWordInsert(setId, it) }
+        api.insertCustomSetWords(payload)
+    }
+
+    suspend fun removeWordFromCustomSet(setId: Long, koreanWord: String) {
+        api.deleteCustomSetWord(setIdFilter = "eq.$setId", koreanWordFilter = "eq.$koreanWord")
+    }
 }
 

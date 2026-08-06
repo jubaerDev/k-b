@@ -116,4 +116,35 @@ interface SupabaseApi {
         @Query("select") select: String = "korean_word,category",
         @Header("Range") range: String
     ): List<EnrichmentRow>
+
+    // ---------- Custom Sets ----------
+
+    @GET("rest/v1/custom_sets")
+    suspend fun getCustomSets(
+        @Query("select") select: String = "id,name,created_at",
+        @Query("order") order: String = "id.asc"
+    ): List<CustomSet>
+
+    @Headers("Content-Type: application/json", "Prefer: return=representation")
+    @POST("rest/v1/custom_sets")
+    suspend fun insertCustomSet(@Body body: CustomSetInsert): List<CustomSet>
+
+    @DELETE("rest/v1/custom_sets")
+    suspend fun deleteCustomSet(@Query("id") idFilter: String): Response<Unit>
+
+    @GET("rest/v1/custom_set_words")
+    suspend fun getCustomSetWords(
+        @Query("set_id") setIdFilter: String,
+        @Query("select") select: String = "korean_word"
+    ): List<CustomSetWordRow>
+
+    @Headers("Content-Type: application/json", "Prefer: return=minimal")
+    @POST("rest/v1/custom_set_words")
+    suspend fun insertCustomSetWords(@Body body: List<CustomSetWordInsert>): Response<Unit>
+
+    @DELETE("rest/v1/custom_set_words")
+    suspend fun deleteCustomSetWord(
+        @Query("set_id") setIdFilter: String,
+        @Query("korean_word") koreanWordFilter: String
+    ): Response<Unit>
 }

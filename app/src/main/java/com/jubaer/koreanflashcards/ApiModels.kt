@@ -56,6 +56,20 @@ data class VocabWordInsert(
     val date_added: String
 )
 
+// ---------- Custom Sets এর জন্য ----------
+
+data class CustomSet(
+    val id: Long,
+    val name: String,
+    val created_at: String? = null
+)
+
+data class CustomSetInsert(val name: String)
+
+data class CustomSetWordRow(val korean_word: String)
+
+data class CustomSetWordInsert(val set_id: Long, val korean_word: String)
+
 data class ChapterLogInsert(
     val chapter_number: Int,
     val total_words_in_file: Int,
