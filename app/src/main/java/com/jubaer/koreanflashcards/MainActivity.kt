@@ -31,6 +31,7 @@ class MainActivity : ComponentActivity() {
     private val bookViewViewModel: BookViewViewModel by viewModels { BookViewViewModelFactory(repo) }
     private val categoryVocabViewModel: CategoryVocabViewModel by viewModels { CategoryVocabViewModelFactory(repo) }
     private val customSetViewModel: CustomSetViewModel by viewModels { CustomSetViewModelFactory(repo) }
+    private val dialogueReaderViewModel: DialogueReaderViewModel by viewModels { DialogueReaderViewModelFactory() }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -48,7 +49,8 @@ class MainActivity : ComponentActivity() {
                         questionBankViewModel,
                         bookViewViewModel,
                         categoryVocabViewModel,
-                        customSetViewModel
+                        customSetViewModel,
+                        dialogueReaderViewModel
                     )
                 }
             }
@@ -66,7 +68,8 @@ fun AppRoot(
     questionBankViewModel: QuestionBankViewModel,
     bookViewViewModel: BookViewViewModel,
     categoryVocabViewModel: CategoryVocabViewModel,
-    customSetViewModel: CustomSetViewModel
+    customSetViewModel: CustomSetViewModel,
+    dialogueReaderViewModel: DialogueReaderViewModel
 ) {
     var selectedTab by remember { mutableStateOf(0) }
     var syncing by remember { mutableStateOf(false) }
@@ -106,7 +109,8 @@ fun AppRoot(
         Triple("📝", "Quiz", 3),
         Triple("📚", "Book", 4),
         Triple("🗂️", "Category", 5),
-        Triple("🗃️", "My Sets", 6)
+        Triple("🗃️", "My Sets", 6),
+        Triple("💬", "Dialogue", 7)
     )
 
     ModalNavigationDrawer(
@@ -179,6 +183,7 @@ fun AppRoot(
                             flashcardViewModel.startSessionWithItems(items)
                             selectedTab = 0
                         })
+                        7 -> DialogueReaderScreen(dialogueReaderViewModel)
                     }
                 }
             }

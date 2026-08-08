@@ -1,0 +1,9 @@
+# app/build.gradle.kts এ dependencies { } ব্লকের ভিতরে এগুলো যোগ করো
+# (আগে যা যোগ করেছিলে সেগুলো থাকুক, নিচেরগুলো নতুন যোগ করো)
+
+dependencies {
+    // ... আগের সব dependency (Retrofit, Room, Apache POI ইত্যাদি) থাকবে ...
+
+    // নতুন: Dialogue Reader ফিচারের জন্য — Google এর official Gemini SDK
+    implementation("com.google.ai.client.generativeai:generativeai:0.9.0")
+}
