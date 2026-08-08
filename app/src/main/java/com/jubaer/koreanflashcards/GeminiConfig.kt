@@ -1,6 +1,9 @@
 package com.jubaer.koreanflashcards
 
+/**
+ * Gemini configuration. The actual key is supplied at build time and is never
+ * stored in source control.
+ */
 object GeminiConfig {
-    // web app এ যে GEMINI_API_KEY ব্যবহার করেছ, সেটাই এখানে বসাও
-    const val API_KEY = "your API_KEY"
+    const val API_KEY = BuildConfig.GEMINI_API_KEY
 }

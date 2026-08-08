@@ -14,6 +14,14 @@ android {
         targetSdk = 34
         versionCode = 1
         versionName = "1.0"
+
+        // Read the Gemini API key from a Gradle property.
+        // GitHub Actions supplies it from the GEMINI_API_KEY repository secret.
+        val geminiApiKey = providers.gradleProperty("GEMINI_API_KEY").orNull
+            ?: providers.environmentVariable("GEMINI_API_KEY").orNull
+            ?: ""
+
+        buildConfigField("String", "GEMINI_API_KEY", "\"${geminiApiKey.replace("\"", "\\\"")}\"")
     }
 
     buildTypes {
@@ -33,6 +41,7 @@ android {
 
     buildFeatures {
         compose = true
+        buildConfig = true
     }
 
     composeOptions {
