@@ -18,3 +18,24 @@ data class ProgressEntity(
     val times_reviewed: Int,
     val times_correct: Int
 )
+
+/**
+ * Dialogue Reader থেকে সেভ করা একটা পুরো chapter — offline এ পরে পড়ার জন্য।
+ * প্রতিটা chapter এ ৩টা অংশ থাকে: কথপোকথন ১, কথপোকথন ২, তথ্য/সংস্কৃতি।
+ * প্রতিটা অংশের turns (বাক্য/বাবল) ও glossary (শব্দ → অর্থ) আলাদা আলাদা JSON
+ * text আকারে সেভ করা হয় (org.json দিয়ে বানানো, দেখো DialogueModels.kt এর
+ * ChapterJson object), যাতে নতুন কোনো library লাগে না এবং local DB তে থাকায়
+ * internet ছাড়াই পরে পুরোটা পড়া যায়।
+ */
+@Entity(tableName = "dialogue_chapters")
+data class DialogueChapterEntity(
+    @PrimaryKey(autoGenerate = true) val id: Long = 0,
+    val chapterName: String,
+    val dialogue1Turns: String,
+    val dialogue1Glossary: String,
+    val dialogue2Turns: String,
+    val dialogue2Glossary: String,
+    val cultureTurns: String,
+    val cultureGlossary: String,
+    val createdAt: Long
+)

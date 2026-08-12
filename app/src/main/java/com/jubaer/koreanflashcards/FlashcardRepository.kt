@@ -338,5 +338,21 @@ class FlashcardRepository(private val api: SupabaseApi, private val db: AppDatab
     suspend fun removeWordFromCustomSet(setId: Long, koreanWord: String) {
         api.deleteCustomSetWord(setIdFilter = "eq.$setId", koreanWordFilter = "eq.$koreanWord")
     }
+
+    // ---------- Dialogue Chapters (Dialogue Reader এর offline লাইব্রেরি) ----------
+    // এগুলো সম্পূর্ণ local — কোনো server call নেই, তাই internet ছাড়াও কাজ করে।
+
+    suspend fun getDialogueChapters(): List<DialogueChapter> =
+        db.dialogueChapterDao().getAll().map { it.toDomain() }
+
+    suspend fun getDialogueChapter(id: Long): DialogueChapter? =
+        db.dialogueChapterDao().getById(id)?.toDomain()
+
+    suspend fun saveDialogueChapter(chapter: DialogueChapter): Long =
+        db.dialogueChapterDao().upsert(chapter.toEntity())
+
+    suspend fun deleteDialogueChapter(id: Long) {
+        db.dialogueChapterDao().deleteById(id)
+    }
 }
 

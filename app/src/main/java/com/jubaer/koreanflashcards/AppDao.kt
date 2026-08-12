@@ -31,3 +31,19 @@ interface ProgressDao {
     @Query("DELETE FROM flashcard_progress_cache")
     suspend fun clearAll()
 }
+
+/** Dialogue Reader এর "চ্যাপ্টার আকারে সেভ করা" লাইব্রেরির জন্য — সম্পূর্ণ local, offline। */
+@Dao
+interface DialogueChapterDao {
+    @Query("SELECT * FROM dialogue_chapters ORDER BY createdAt DESC")
+    suspend fun getAll(): List<DialogueChapterEntity>
+
+    @Query("SELECT * FROM dialogue_chapters WHERE id = :id")
+    suspend fun getById(id: Long): DialogueChapterEntity?
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun upsert(chapter: DialogueChapterEntity): Long
+
+    @Query("DELETE FROM dialogue_chapters WHERE id = :id")
+    suspend fun deleteById(id: Long)
+}

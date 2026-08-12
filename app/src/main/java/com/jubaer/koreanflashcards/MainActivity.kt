@@ -31,7 +31,7 @@ class MainActivity : ComponentActivity() {
     private val bookViewViewModel: BookViewViewModel by viewModels { BookViewViewModelFactory(repo) }
     private val categoryVocabViewModel: CategoryVocabViewModel by viewModels { CategoryVocabViewModelFactory(repo) }
     private val customSetViewModel: CustomSetViewModel by viewModels { CustomSetViewModelFactory(repo) }
-    private val dialogueReaderViewModel: DialogueReaderViewModel by viewModels { DialogueReaderViewModelFactory() }
+    private val dialogueReaderViewModel: DialogueReaderViewModel by viewModels { DialogueReaderViewModelFactory(repo) }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
