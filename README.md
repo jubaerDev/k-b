@@ -39,3 +39,14 @@ version install করে নেয় (`gradle/actions/setup-gradle`), তা�
 সব ফাইলই এখন ছোট plain-text (.kt, .xml, .kts, .properties) — কোনোটাই কয়েক KB
 এর বেশি না, তাই transfer এ ভাঙার সম্ভাবনা প্রায় নেই। তারপরও কোনো build error
 এলে, সেই error message দিলে ঠিক করে দেব।
+
+## Dialogue word meaning fallback
+
+When a Korean word is tapped in a saved dialogue, the app now resolves its Bangla meaning in this order:
+
+1. Saved dialogue glossary
+2. Local Room vocabulary cache (synced from Supabase)
+3. Direct Supabase `vocab_words` lookup
+4. Gemini fallback for the missing word
+
+Gemini-generated meanings are stored in the local `dialogue_word_meanings` Room table, so the same missing word does not trigger Gemini again on the same device. Room database version 3 includes a non-destructive migration from version 2.

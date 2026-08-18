@@ -39,7 +39,10 @@ data class DialogueUiState(
     // ভিউয়ার (সেভ করা চ্যাপ্টার অফলাইনে পড়া — কোনো AI call লাগে না)
     val viewingChapter: DialogueChapter? = null,
     val viewingSection: ChapterSection = ChapterSection.DIALOGUE_1,
-    val selectedWord: String? = null
+    val selectedWord: String? = null,
+    val selectedMeaning: String? = null,
+    val meaningLoading: Boolean = false,
+    val meaningError: String? = null
 )
 
 class DialogueReaderViewModel(private val repo: FlashcardRepository) : ViewModel() {
@@ -207,16 +210,35 @@ class DialogueReaderViewModel(private val repo: FlashcardRepository) : ViewModel
             mode = DialogueScreenMode.VIEWER,
             viewingChapter = chapter,
             viewingSection = ChapterSection.DIALOGUE_1,
-            selectedWord = null
+            selectedWord = null,
+            selectedMeaning = null,
+            meaningLoading = false,
+            meaningError = null
         )
     }
 
     fun setViewingSection(section: ChapterSection) {
-        _uiState.value = _uiState.value.copy(viewingSection = section, selectedWord = null)
+        _uiState.value = _uiState.value.copy(viewingSection = section, selectedWord = null, selectedMeaning = null, meaningLoading = false, meaningError = null)
     }
 
-    fun selectWord(word: String?) {
-        _uiState.value = _uiState.value.copy(selectedWord = word)
+    fun selectWord(word: String?, glossary: Map<String, String> = emptyMap()) {
+        if (word == null) {
+            _uiState.value = _uiState.value.copy(selectedWord = null, selectedMeaning = null, meaningLoading = false, meaningError = null)
+            return
+        }
+        _uiState.value = _uiState.value.copy(selectedWord = word, selectedMeaning = null, meaningLoading = true, meaningError = null)
+        viewModelScope.launch {
+            try {
+                val meaning = repo.resolveDialogueWordMeaning(word, glossary)
+                if (_uiState.value.selectedWord == word) {
+                    _uiState.value = _uiState.value.copy(selectedMeaning = meaning, meaningLoading = false)
+                }
+            } catch (e: Exception) {
+                if (_uiState.value.selectedWord == word) {
+                    _uiState.value = _uiState.value.copy(meaningLoading = false, meaningError = e.message ?: "অর্থ বের করা যায়নি")
+                }
+            }
+        }
     }
 
     fun backToLibrary() {
@@ -224,6 +246,9 @@ class DialogueReaderViewModel(private val repo: FlashcardRepository) : ViewModel
             mode = DialogueScreenMode.LIBRARY,
             viewingChapter = null,
             selectedWord = null,
+            selectedMeaning = null,
+            meaningLoading = false,
+            meaningError = null,
             saveError = null
         )
     }

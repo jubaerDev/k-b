@@ -135,4 +135,24 @@ object DialogueAiHelper {
 
     suspend fun parseSectionFromImage(section: ChapterSection, bitmap: Bitmap): DialogueParseResult =
         if (section == ChapterSection.CULTURE) parseParagraphFromImage(bitmap) else parseDialogueFromImage(bitmap)
+
+    /** Translate one missing Korean token to a short, natural Bangla meaning. */
+    suspend fun translateSingleKoreanWord(koreanWord: String): String {
+        if (GeminiConfig.API_KEY.isBlank()) throw IllegalStateException("GEMINI_API_KEY সেট করা নেই")
+        val prompt = """তুমি Korean-Bangla অভিধান সহকারী। Korean শব্দ/eojeol: $koreanWord\nশুধু তার সংক্ষিপ্ত, সঠিক বাংলা অর্থ দাও। Korean শব্দটি আবার লিখবে না, কোনো ব্যাখ্যা, JSON বা markdown দেবে না। Context না থাকলে সবচেয়ে প্রচলিত অর্থ দাও।"""
+        var lastError: Exception? = null
+        for (modelName in CANDIDATE_MODELS) {
+            try {
+                val model = GenerativeModel(modelName = modelName, apiKey = GeminiConfig.API_KEY)
+                val response = model.generateContent(prompt)
+                val text = response.text?.trim().orEmpty()
+                if (text.isNotBlank()) return text
+                throw IllegalStateException("Gemini empty response")
+            } catch (e: Exception) {
+                lastError = e
+            }
+        }
+        throw lastError ?: RuntimeException("Gemini meaning lookup failed")
+    }
+
 }

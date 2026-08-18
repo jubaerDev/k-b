@@ -22,8 +22,8 @@ import java.util.Date
 import java.util.Locale
 
 private fun lookupMeaning(token: String, glossary: Map<String, String>): String {
-    val core = token.trim().trim('.', ',', '?', '!', '"', '\'')
-    return glossary[core] ?: glossary[token] ?: "❓ অর্থ পাওয়া যায়নি (টোকেন: $core)"
+    val core = token.trim().trim('.', ',', '?', '!', '"', '\'', '“', '”', '‘', '’', '(', ')', '[', ']', '。', '！', '？', '，')
+    return glossary[core] ?: glossary[token] ?: ""
 }
 
 @Composable
@@ -345,9 +345,9 @@ private fun DialogueViewerScreen(viewModel: DialogueReaderViewModel, state: Dial
             LazyColumn(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 items(content.turns) { turn ->
                     if (state.viewingSection == ChapterSection.CULTURE) {
-                        ParagraphCard(turn, content.glossary) { word -> viewModel.selectWord(word) }
+                        ParagraphCard(turn, content.glossary) { word -> viewModel.selectWord(word, content.glossary) }
                     } else {
-                        DialogueBubble(turn, content.glossary) { word -> viewModel.selectWord(word) }
+                        DialogueBubble(turn, content.glossary) { word -> viewModel.selectWord(word, content.glossary) }
                     }
                 }
             }
@@ -355,12 +355,26 @@ private fun DialogueViewerScreen(viewModel: DialogueReaderViewModel, state: Dial
     }
 
     if (state.selectedWord != null) {
-        val content = chapter.content(state.viewingSection)
-        val meaning = lookupMeaning(state.selectedWord!!, content.glossary)
         AlertDialog(
             onDismissRequest = { viewModel.selectWord(null) },
             title = { Text(state.selectedWord!!) },
-            text = { Text(meaning) },
+            text = {
+                when {
+                    state.meaningLoading -> Row(
+                        horizontalArrangement = Arrangement.spacedBy(12.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        CircularProgressIndicator(modifier = Modifier.size(22.dp), strokeWidth = 2.dp)
+                        Text("অর্থ খোঁজা হচ্ছে…")
+                    }
+                    state.meaningError != null -> Text(
+                        "⚠️ ${state.meaningError}",
+                        color = MaterialTheme.colorScheme.error
+                    )
+                    !state.selectedMeaning.isNullOrBlank() -> Text(state.selectedMeaning!!)
+                    else -> Text("❓ অর্থ পাওয়া যায়নি")
+                }
+            },
             confirmButton = {
                 TextButton(onClick = { viewModel.selectWord(null) }) { Text("বন্ধ করো") }
             }
