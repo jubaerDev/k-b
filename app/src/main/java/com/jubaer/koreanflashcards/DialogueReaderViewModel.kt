@@ -39,10 +39,7 @@ data class DialogueUiState(
     // ভিউয়ার (সেভ করা চ্যাপ্টার অফলাইনে পড়া — কোনো AI call লাগে না)
     val viewingChapter: DialogueChapter? = null,
     val viewingSection: ChapterSection = ChapterSection.DIALOGUE_1,
-    val selectedWord: String? = null,
-    val selectedMeaning: String? = null,
-    val meaningLoading: Boolean = false,
-    val meaningError: String? = null
+    val selectedWord: String? = null
 )
 
 class DialogueReaderViewModel(private val repo: FlashcardRepository) : ViewModel() {
@@ -99,6 +96,8 @@ class DialogueReaderViewModel(private val repo: FlashcardRepository) : ViewModel
         val sections = mapOf(
             ChapterSection.DIALOGUE_1 to SectionEditState(content = chapter.dialogue1),
             ChapterSection.DIALOGUE_2 to SectionEditState(content = chapter.dialogue2),
+            ChapterSection.READING to SectionEditState(content = chapter.reading),
+            ChapterSection.LISTENING to SectionEditState(content = chapter.listening),
             ChapterSection.CULTURE to SectionEditState(content = chapter.culture)
         )
         _uiState.value = _uiState.value.copy(
@@ -151,7 +150,7 @@ class DialogueReaderViewModel(private val repo: FlashcardRepository) : ViewModel
                 setSectionState(section) {
                     it.copy(
                         loading = false,
-                        content = ChapterSectionContent(result.turns, result.glossary)
+                        content = ChapterSectionContent(result.turns, result.glossary, result.questions)
                     )
                 }
             } catch (e: Exception) {
@@ -180,7 +179,7 @@ class DialogueReaderViewModel(private val repo: FlashcardRepository) : ViewModel
         }
         val hasAnyContent = state.sections.values.any { it.isDone }
         if (!hasAnyContent) {
-            _uiState.value = state.copy(saveError = "অন্তত একটা অংশ (কথপোকথন ১/২ বা তথ্য-সংস্কৃতি) প্রসেস করে যোগ করো")
+            _uiState.value = state.copy(saveError = "অন্তত একটা অংশ প্রসেস করে যোগ করো")
             return
         }
 
@@ -192,6 +191,8 @@ class DialogueReaderViewModel(private val repo: FlashcardRepository) : ViewModel
                     chapterName = name,
                     dialogue1 = state.sections[ChapterSection.DIALOGUE_1]?.content ?: ChapterSectionContent(),
                     dialogue2 = state.sections[ChapterSection.DIALOGUE_2]?.content ?: ChapterSectionContent(),
+                    reading = state.sections[ChapterSection.READING]?.content ?: ChapterSectionContent(),
+                    listening = state.sections[ChapterSection.LISTENING]?.content ?: ChapterSectionContent(),
                     culture = state.sections[ChapterSection.CULTURE]?.content ?: ChapterSectionContent()
                 )
                 repo.saveDialogueChapter(chapter)
@@ -210,35 +211,16 @@ class DialogueReaderViewModel(private val repo: FlashcardRepository) : ViewModel
             mode = DialogueScreenMode.VIEWER,
             viewingChapter = chapter,
             viewingSection = ChapterSection.DIALOGUE_1,
-            selectedWord = null,
-            selectedMeaning = null,
-            meaningLoading = false,
-            meaningError = null
+            selectedWord = null
         )
     }
 
     fun setViewingSection(section: ChapterSection) {
-        _uiState.value = _uiState.value.copy(viewingSection = section, selectedWord = null, selectedMeaning = null, meaningLoading = false, meaningError = null)
+        _uiState.value = _uiState.value.copy(viewingSection = section, selectedWord = null)
     }
 
-    fun selectWord(word: String?, glossary: Map<String, String> = emptyMap()) {
-        if (word == null) {
-            _uiState.value = _uiState.value.copy(selectedWord = null, selectedMeaning = null, meaningLoading = false, meaningError = null)
-            return
-        }
-        _uiState.value = _uiState.value.copy(selectedWord = word, selectedMeaning = null, meaningLoading = true, meaningError = null)
-        viewModelScope.launch {
-            try {
-                val meaning = repo.resolveDialogueWordMeaning(word, glossary)
-                if (_uiState.value.selectedWord == word) {
-                    _uiState.value = _uiState.value.copy(selectedMeaning = meaning, meaningLoading = false)
-                }
-            } catch (e: Exception) {
-                if (_uiState.value.selectedWord == word) {
-                    _uiState.value = _uiState.value.copy(meaningLoading = false, meaningError = e.message ?: "অর্থ বের করা যায়নি")
-                }
-            }
-        }
+    fun selectWord(word: String?) {
+        _uiState.value = _uiState.value.copy(selectedWord = word)
     }
 
     fun backToLibrary() {
@@ -246,9 +228,6 @@ class DialogueReaderViewModel(private val repo: FlashcardRepository) : ViewModel
             mode = DialogueScreenMode.LIBRARY,
             viewingChapter = null,
             selectedWord = null,
-            selectedMeaning = null,
-            meaningLoading = false,
-            meaningError = null,
             saveError = null
         )
     }

@@ -126,9 +126,3 @@ data class CategoryWordItem(
     val banglaSynonyms: String?,
     val banglaAntonyms: String?
 )
-
-
-data class DialogueWordLookupRow(
-    val korean_word: String,
-    val bangla_meaning: String?
-)

@@ -12,8 +12,8 @@ android {
         applicationId = "com.jubaer.koreanflashcards"
         minSdk = 26
         targetSdk = 34
-        versionCode = 1
-        versionName = "1.0"
+        versionCode = 2
+        versionName = "1.1"
 
         // Read the Gemini API key from a Gradle property.
         // GitHub Actions supplies it from the GEMINI_API_KEY repository secret.

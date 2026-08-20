@@ -6,7 +6,7 @@ import androidx.room.Room
 import androidx.room.RoomDatabase
 
 @Database(
-    entities = [VocabWordEntity::class, ProgressEntity::class, DialogueChapterEntity::class, DialogueWordMeaningEntity::class],
+    entities = [VocabWordEntity::class, ProgressEntity::class, DialogueChapterEntity::class],
     version = 3,
     exportSchema = false
 )
@@ -14,12 +14,16 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun vocabDao(): VocabDao
     abstract fun progressDao(): ProgressDao
     abstract fun dialogueChapterDao(): DialogueChapterDao
-    abstract fun dialogueWordMeaningDao(): DialogueWordMeaningDao
 
     companion object {
         private val MIGRATION_2_3 = object : androidx.room.migration.Migration(2, 3) {
-            override fun migrate(database: androidx.sqlite.db.SupportSQLiteDatabase) {
-                database.execSQL("CREATE TABLE IF NOT EXISTS dialogue_word_meanings (koreanWord TEXT NOT NULL, banglaMeaning TEXT NOT NULL, source TEXT NOT NULL, updatedAt INTEGER NOT NULL, PRIMARY KEY(koreanWord))")
+            override fun migrate(db: androidx.sqlite.db.SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE dialogue_chapters ADD COLUMN readingTurns TEXT NOT NULL DEFAULT ''")
+                db.execSQL("ALTER TABLE dialogue_chapters ADD COLUMN readingGlossary TEXT NOT NULL DEFAULT ''")
+                db.execSQL("ALTER TABLE dialogue_chapters ADD COLUMN readingQuestions TEXT NOT NULL DEFAULT ''")
+                db.execSQL("ALTER TABLE dialogue_chapters ADD COLUMN listeningTurns TEXT NOT NULL DEFAULT ''")
+                db.execSQL("ALTER TABLE dialogue_chapters ADD COLUMN listeningGlossary TEXT NOT NULL DEFAULT ''")
+                db.execSQL("ALTER TABLE dialogue_chapters ADD COLUMN listeningQuestions TEXT NOT NULL DEFAULT ''")
             }
         }
 

@@ -18,13 +18,6 @@ interface SupabaseApi {
     ): List<VocabWord>
 
     @GET("rest/v1/vocab_words")
-    suspend fun getVocabWordExact(
-        @Query("korean_word") koreanWordFilter: String,
-        @Query("select") select: String = "korean_word,bangla_meaning",
-        @Query("limit") limit: Int = 1
-    ): List<DialogueWordLookupRow>
-
-    @GET("rest/v1/vocab_words")
     suspend fun getVocabWordsByChapter(
         @Query("chapter_number") chapterFilter: String,
         @Query("select") select: String = "korean_word,bangla_meaning,chapter_number"

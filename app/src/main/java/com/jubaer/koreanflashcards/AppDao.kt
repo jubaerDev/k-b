@@ -16,20 +16,8 @@ interface VocabDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertAll(words: List<VocabWordEntity>)
 
-    @Query("SELECT * FROM vocab_words_cache WHERE korean_word = :word LIMIT 1")
-    suspend fun getByKoreanWord(word: String): VocabWordEntity?
-
     @Query("DELETE FROM vocab_words_cache")
     suspend fun clearAll()
-}
-
-@Dao
-interface DialogueWordMeaningDao {
-    @Query("SELECT * FROM dialogue_word_meanings WHERE koreanWord = :word LIMIT 1")
-    suspend fun get(word: String): DialogueWordMeaningEntity?
-
-    @androidx.room.Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun upsert(row: DialogueWordMeaningEntity)
 }
 
 @Dao
